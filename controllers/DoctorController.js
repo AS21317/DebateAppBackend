@@ -41,7 +41,7 @@ export const getSingleDoctor = async (req, res) => {
   try {
     const doctor = await Doctor.findById(id)
       .populate("reviews")
-      .select("-password");
+      .select('-password -gToken');
 
     res
       .status(200)
@@ -68,11 +68,11 @@ export const getAllDoctor = async (req, res) => {
           { name: { $regex: query, $options: "i" } },
           { specialization: { $regex: query, $options: "i" } },
         ],
-      }).select("-password");
+      }).select('-password -gToken');
     } else {
       //if no query then find all docotrs
       doctors = await Doctor.find({ isApproved: "approved" }).select(
-        "-password"
+        '-password -gToken'
       );
     }
 
@@ -92,7 +92,7 @@ export const getAllDoctor = async (req, res) => {
 
 export const doctorProfile = async (req, res) => {
   const doctorId = req.userId;
-  console.log("Doctor id is : ", doctorId);
+  // console.log("Doctor id is : ",doctorId);
   try {
     const doctor = await Doctor.findById(doctorId);
     if (!doctor) {
@@ -100,10 +100,10 @@ export const doctorProfile = async (req, res) => {
         .status(404)
         .json({ success: false, message: "doctor not found" });
     }
-    console.log("Founded docter is : ", doctor._doc);
+    // console.log("Founded docter is : ", doctor._doc);
     const { password, ...rest } = doctor._doc;
     const appointments = await Booking.find({ doctor: doctorId });
-    console.log("Appointments are  : ", appointments);
+    // console.log("Appointments are  : ",appointments);
     return res
       .status(200)
       .json({

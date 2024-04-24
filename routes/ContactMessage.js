@@ -8,4 +8,4 @@ const router = express.Router()  //mergeparams will make available doctorid of p
 router.post('/createMessage',createMessage);
 router.get('/',authenticate,restrict(['patient']),getAllMessage)
 
-export default router 
+export default router

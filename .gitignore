@@ -1,17 +1,39 @@
-# Logs
-logs
-*.log
+@ -4,8 +4,9 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+.pnpm-debug.log*
 
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+@ -73,23 +74,22 @@ web_modules/
+.yarn-integrity
+
+# dotenv environment variable files
 node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
 
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
+dist
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,4 +44,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env
+
+# Gatsby files
+.cache/
+@ -124,4 +124,4 @@ dist
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+.pnp.*

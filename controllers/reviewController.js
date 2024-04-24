@@ -31,7 +31,7 @@ export const createReview = async(req,res)=>{
 
     //*  *** we have derived userId from token , and not using userId comming from params ***
 
-    console.log("params is ; ",req.params);
+    // console.log("params is ; ",req.params);
 
     if(!req.body.doctor)
     {
@@ -42,13 +42,13 @@ export const createReview = async(req,res)=>{
     {
         req.body.user = req.userId
     }
-    console.log("Req body see ",req.body);
+    // console.log("Req body see ",req.body);
 
     const newReview = new Review(req.body)
 
     try {
         const savedReview = await  newReview.save()
-        console.log("Saved review is : ",savedReview);
+        // console.log("Saved review is : ",savedReview);
         // after saving this review , update the corresponding doctor reviews in doctor collection
 
         await Doctor.findByIdAndUpdate(req.body.doctor,{$push:{reviews:savedReview._id}})  //* created a relationship between doctor and reviews

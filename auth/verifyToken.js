@@ -7,7 +7,7 @@ import User from "../models/UserSchema.js";
 export const authenticate = async (req, res, next) => {
   // get token from header
   const authToken = req.headers.authorization;
-  console.log("recieved token is : ", authToken);
+  // console.log("recieved token is : ", authToken);
 
   // we are especting a token like 'Bearer...' formate
 
@@ -15,13 +15,13 @@ export const authenticate = async (req, res, next) => {
     return res.status(401).json({
       success: false,
       message: "No token,authorization Denied ",
-    }); 
+    });
   }
 
   // now verify the token if it is available
 
   try {
-    console.log(authToken);
+    // console.log(authToken);
     const token = authToken.split(" ")[1];
 
     // verify the token
@@ -32,7 +32,7 @@ export const authenticate = async (req, res, next) => {
     req.userId = decoded.id;
     req.role = decoded.role;
 
-    console.log("assigned role and id is  : ", req.role,req.userId);
+    // console.log("assigned role and id is  : ", req.role,req.userId);
 
     next();
   } catch (err) {
@@ -47,45 +47,34 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
-
-
-// Creating middleware to authenticate admin 
-
+// Creating middleware to authenticate admin
 
 // here roles will be passed as an array of designeted roles that are permited on the route
-export const restrict = roles=>async(req,res,next)=>{
-    // take userId from req, that is added by previous authentication middleware 
-    const userId = req.userId
-    let user;
+export const restrict = (roles) => async (req, res, next) => {
+  // take userId from req, that is added by previous authentication middleware
+  const userId = req.userId;
+  let user;
 
-    // find this user in both collection , Doctor and user
+  // find this user in both collection , Doctor and user
 
-    const patient  = await User.findById(userId)
+  const patient = await User.findById(userId);
 
-    const doctor = await Doctor.findById(userId);
+  const doctor = await Doctor.findById(userId);
 
-    if(patient)
-    {
-        user = patient
-    }
+  if (patient) {
+    user = patient;
+  }
 
-    if(doctor)
-    {
-        user = doctor
-    }
+  if (doctor) {
+    user = doctor;
+  }
 
+  if (!roles.includes(user.role)) {
+    return res
+      .status(401)
+      .json({ success: false, message: "You are not Authorized " });
+  }
 
-    if(!roles.includes(user.role))
-    {
-        return res.status(401).json({success:false,
-            message:"You are not Authorized "
-        })
-    } 
-
-    console.log("restict middleware approved for user : ",user);
-    next();
-
-
- 
-
-}
+  // console.log("restict middleware approved for user : ",user);
+  next();
+};
