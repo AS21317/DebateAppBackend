@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
-import Doctor from "../models/DoctorSchema.js";
+import Host from "../models/HostSchema.js";
 import User from "../models/UserSchema.js";
+import { clouddebugger } from "googleapis/build/src/apis/clouddebugger/index.js";
 
 // designed middleware to authenticate and authorized the request before execution based on their Token
 
@@ -12,7 +13,7 @@ export const authenticate = async (req, res, next) => {
   // we are especting a token like 'Bearer...' formate
 
   if (!authToken || !authToken.startsWith("Bearer")) {
-    return res.status(401).json({
+    return res.status(401).send({
       success: false,
       message: "No token,authorization Denied ",
     });
@@ -40,10 +41,10 @@ export const authenticate = async (req, res, next) => {
     if (err.name === "TokenExpiredError") {
       return res
         .status(401)
-        .json({ success: false, message: "Token is Expired " });
+        .send({ success: false, message: "Token is Expired " });
     }
 
-    return res.status(401).json({ success: false, message: "Invalid Token " });
+    return res.status(401).send({ success: false, message: "Invalid Token " });
   }
 };
 
@@ -52,27 +53,18 @@ export const authenticate = async (req, res, next) => {
 // here roles will be passed as an array of designeted roles that are permited on the route
 export const restrict = (roles) => async (req, res, next) => {
   // take userId from req, that is added by previous authentication middleware
-  const userId = req.userId;
-  let user;
 
-  // find this user in both collection , Doctor and user
+  try{
+    const userId = req.userId;
+    const user = await User.findById(userId);
 
-  const patient = await User.findById(userId);
-
-  const doctor = await Doctor.findById(userId);
-
-  if (patient) {
-    user = patient;
-  }
-
-  if (doctor) {
-    user = doctor;
-  }
-
-  if (!roles.includes(user.role)) {
-    return res
-      .status(401)
-      .json({ success: false, message: "You are not Authorized " });
+    if (!roles.includes(user.role)) {
+      return res
+        .status(401)
+        .send({ success: false, message: "Not Authorized." });
+    }
+  }catch(err){
+    console.log("Error while finding user in restrict middleware: ", err);
   }
 
   // console.log("restict middleware approved for user : ",user);

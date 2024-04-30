@@ -6,25 +6,37 @@ import dotenv from 'dotenv'
 
 import authRoute from './routes/auth.js'
 import userRoute from './routes/user.js'
-import doctorRouter from './routes/doctor.js'
-import reviewRoute from './routes/review.js'
-import bookingRoute from './routes/Booking.js'
-import calendarRoute from './routes/calendar.js';
+import hostRoute from './routes/host.js'
+import eventRoute from './routes/event.js'
+import adminRoute from './routes/admin.js'
+import contactMessageRoute from './routes/contactMessage.js'
+import hostApplicationRoute from './routes/hostApplication.js'
+import topicRoute from './routes/topic.js'
 
-import { createEventHelper } from "./controllers/calendarController.js"
+import { createEventHelper, cancelEventHelper } from "./controllers/calendarController.js"
 
 dotenv.config()
 
 const app = express();
-const port = process.env.PORT||8000
+const port = process.env.PORT || 8000
+const ip = process.env.IP_ADDRESS || ''
 
-const corsOptions ={
+const corsOptions = {
     origin: '*',
-    credentials: true,
+    optionsSuccessStatus: 200,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    preflightContinue: false,
+    Credentials: true
 }
 
-app.get('/',(req,res)=>{
-    res.send("Api is working ")
+// Writing required middlewares  
+app.use(express.json());
+app.use(cookieParser());
+app.use(cors(corsOptions))
+
+app.get('/', (req,res) => {
+    res.status(200).send("Api is working ")
 })
 
 
@@ -39,37 +51,50 @@ const connectDB = async()=>{
     }
 }
 
+app.use('/api/v1/auth', authRoute)
+app.use('/api/v1/user', userRoute)
+app.use('/api/v1/host', hostRoute)
+app.use('/api/v1/events', eventRoute)
+app.use('/api/v1/admin', adminRoute)
+app.use('/api/v1/contactMessage', contactMessageRoute)
+app.use('/api/v1/hostApplication', hostApplicationRoute)
+app.use('/api/v1/topic', topicRoute)
 
-// Writing required middlewares  
+// app.use('/api/v1/review',reviewRoute)
+// app.use('/api/v1/calendar',calendarRoute)
 
-app.use(express.json());
-app.use(cookieParser());
-app.use(cors(corsOptions))
-app.use('/api/v1/auth',authRoute)
-app.use('/api/v1/user',userRoute)
-app.use('/api/v1/doctor',doctorRouter)
-app.use('/api/v1/review',reviewRoute)
-app.use('/api/v1/bookings',bookingRoute)
-app.use('/api/v1/calendar',calendarRoute)
+const test = async () => {
+    try{
+        // const eventDetails = {
+        //     title: "Test Event",
+        //     description: "This is a test event",
+        //     startDateTimeString: "2025-06-01 00:00:00",
+        //     endDateTimeString: "2025-06-01 23:59:59",
+        //     attendees: [{ email: "ashish3553singh@gmail.com" }],
+        // }
 
-// const test = async () => {
-//     try{
-//         const eventDetails = {
-//             title: "Test Event",
-//             description: "This is a test event",
-//             startDateTimeString: "2024-04-24 08:00:00",
-//             endDateTimeString: "2024-04-24 09:00:00",
-//             attendees: [{ email: "kavyagupta2719@gmail.com" }],
-//         }
+        // const res = await createEventHelper(eventDetails, '662b93948ff87724f3ceadd3');
+        
+        // const res = await cancelEventHelper('q1lri664etvvt7gckfqeh1tqtg', '662b93948ff87724f3ceadd3')
+        // console.log(res)
+    }catch(err){
+        console.log("Error while testing: ", err);
+    }
+}
 
-//         const eventLink = await createEventHelper(eventDetails, '662661e7d59e298def5a345c');
-//     }catch(err){
-//         console.log("Error creating event: ", err);
-//     }
-// }
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
-app.listen(port,()=>{
-    connectDB();
-    // test();
-    console.log(`Server is running  on port ${port}`); 
-})
+if (isDevelopment) {
+    app.listen(port, ip, () => {
+        connectDB();
+        test();
+        console.log(`Server is running on http://${ip}:${port}/`);
+    });
+} else {
+    app.listen(process.env.PORT, () => {
+        connectDB();
+        test();
+        console.log(`Server is running on port ${process.env.PORT}`);
+    });
+}
+

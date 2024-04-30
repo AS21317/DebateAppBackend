@@ -4,8 +4,7 @@ import process from 'process';
 import { authenticate } from '@google-cloud/local-auth';
 import { google } from 'googleapis';
 
-import Doctor from "../models/DoctorSchema.js";
-import { type } from 'os';
+import Host from "../models/HostSchema.js";
 
 
 // If modifying these scopes, delete token.json.
@@ -25,8 +24,8 @@ const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
  */
 async function loadSavedCredentialsIfExist(id) {
   try {
-    const doctor = await Doctor.findById(id).select("gToken");
-    const credentials = JSON.parse(doctor.gToken);
+    const host = await Host.findById(id).select("gToken");
+    const credentials = JSON.parse(host.gToken);
 
     return google.auth.fromJSON(credentials);
   } catch (err) {
@@ -52,7 +51,7 @@ async function saveCredentials(client, id) {
   });
   
   try{
-    await Doctor.findByIdAndUpdate(
+    await Host.findByIdAndUpdate(
       id,
       { gToken: gToken },
     );

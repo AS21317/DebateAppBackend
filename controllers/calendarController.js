@@ -2,31 +2,31 @@ import { google } from 'googleapis';
 import authorize from '../auth/meet.js';
 
 
-export const createEvent = async (req, res) => {
-    try{
-        const id = req.params.id;
-        const { title, description, attendees, startDateTimeString, endDateTimeString } = req.body;
-        const eventDetails = { title, description, attendees, startDateTimeString, endDateTimeString };
+// export const createEvent = async (req, res) => {
+//     try{
+//         const id = req.params.id;
+//         const { title, description, attendees, startDateTimeString, endDateTimeString } = req.body;
+//         const eventDetails = { title, description, attendees, startDateTimeString, endDateTimeString };
 
-        const eventLink = await createEventHelper(eventDetails, id);
-        res.status(200).send({ message: "Event created successfully.", eventLink });
-    }catch(err){
-        console.log("Error creating event: ", err);
-        res.status(500).send({ message: "Error creating event." });
-    }
-}
+//         const eventLink = await createEventHelper(eventDetails, id);
+//         res.status(200).send({ message: "Event created successfully.", eventLink });
+//     }catch(err){
+//         console.log("Error creating event: ", err);
+//         res.status(500).send({ message: "Error creating event." });
+//     }
+// }
 
 
-export const listEvents = async (req, res) => {
-    try{
-        const id = req.params.id;
-        const events = await listEventsHelper(id);
-        res.status(200).send({ message: "Events fetched successfully.", events });
-    }catch(err){
-        console.log("Error fetching events: ", err);
-        res.status(500).send({ message: "Error fetching events." });
-    }
-}
+// export const listEvents = async (req, res) => {
+//     try{
+//         const id = req.params.id;
+//         const events = await listEventsHelper(id);
+//         res.status(200).send({ message: "Events fetched successfully.", events });
+//     }catch(err){
+//         console.log("Error fetching events: ", err);
+//         res.status(500).send({ message: "Error fetching events." });
+//     }
+// }
 
 
 /**
@@ -37,31 +37,31 @@ export const listEvents = async (req, res) => {
     @return {Array<Object>}
 */
 
-const listEventsHelper = async (id) => {
-    const auth = await authorize(id);
-    const calendar = google.calendar({ version: "v3", auth });
-    const res = await calendar.events.list({
-        calendarId: "primary",
-        timeMin: new Date().toISOString(),
-        maxResults: 10,
-        singleEvents: true,
-        orderBy: "startTime",
-    });
+// const listEventsHelper = async (id) => {
+//     const auth = await authorize(id);
+//     const calendar = google.calendar({ version: "v3", auth });
+//     const res = await calendar.events.list({
+//         calendarId: "primary",
+//         timeMin: new Date().toISOString(),
+//         maxResults: 10,
+//         singleEvents: true,
+//         orderBy: "startTime",
+//     });
 
-    const events = res.data.items;
-    if (!events || events.length === 0) {
-        console.log("No upcoming events found.");
-        return;
-    }
+//     const events = res.data.items;
+//     if (!events || events.length === 0) {
+//         console.log("No upcoming events found.");
+//         return;
+//     }
 
-    console.log("Upcoming 10 events:");
-    events.map((event, i) => {
-        const start = event.start.dateTime || event.start.date;
-        console.log(`${start} - ${event.summary}`);
-    });
+//     console.log("Upcoming 10 events:");
+//     events.map((event, i) => {
+//         const start = event.start.dateTime || event.start.date;
+//         console.log(`${start} - ${event.summary}`);
+//     });
 
-    return events;
-}
+//     return events;
+// }
 
 
 /**
@@ -70,12 +70,10 @@ const listEventsHelper = async (id) => {
     @param {Object} eventDetails: {
         title: string,
         description: string,
-        attendees: [
-            { email: string },
-            { email: string },
-        ],
+        attendees: [{ email: string },],
         startDateTimeString: string,
-        endDateTimeString: string
+        endDateTimeString: string,
+        maxAttendees: number,
     }
     @param {string} id
 
@@ -88,22 +86,24 @@ const listEventsHelper = async (id) => {
     both time will be adjusted with the Asia/Kolkata timezone
 */
 
-export const createEventHelper = async (eventDetails, id) => {
-    const { title, description, attendees, startDateTimeString, endDateTimeString } = eventDetails;
+export const createEventHelper = async (eventDetails, hostId) => {
+    console.log("Event Details: ", eventDetails)
 
+    const { title, description, attendees, startDate, startTime, endDate, endTime, maxAttendees } = eventDetails;
     let event = {
         summary: title,
         location: "Google Meet",
         description,
         start: {
-            dateTime: new Date(startDateTimeString).toISOString(),
+            dateTime: new Date(startDate + " " + startTime).toISOString(),
             timeZone: "Asia/Kolkata",
         },
         end: {
-            dateTime: new Date(endDateTimeString).toISOString(),
+            dateTime: new Date(endDate + " " + endTime).toISOString(),
             timeZone: "Asia/Kolkata",
         },
         attendees,
+        maxAttendees,
         reminders: {
             useDefault: false,
             overrides: [
@@ -119,20 +119,38 @@ export const createEventHelper = async (eventDetails, id) => {
     };
 
     try {
-        const auth = await authorize(id);
+        const auth = await authorize(hostId);
         const calendar = google.calendar({ version: "v3", auth });
         const res = await calendar.events.insert({
-            auth: auth,
             calendarId: "primary",
             resource: event,
             conferenceDataVersion: 1,
             sendUpdates: "all",
         });
 
-        console.log("Event created: %s", res.data.htmlLink);
+        console.log("Event created: %s", res.data);
 
-        return res.data.htmlLink;
+        return { calendarEventId: res.data.id ,eventLink: res.data.htmlLink, meetLink: res.data.hangoutLink };
     } catch (err) {
         console.log("Error creating event:", err);
+    }
+}
+
+
+export const cancelEventHelper = async (eventId, hostId) => {
+    console.log("Event Id: ", eventId)
+
+    try {
+        const auth = await authorize(hostId);
+        const calendar = google.calendar({ version: "v3", auth });
+        const res = await calendar.events.delete({
+            calendarId: "primary",
+            eventId,
+        });
+
+        return true;
+    } catch (err) {
+        console.log("Error creating event:", err);
+        return false;
     }
 }

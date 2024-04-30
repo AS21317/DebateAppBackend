@@ -22,6 +22,7 @@ dist-ssr
 .env.test.local
 .env.production.local
 .env.local
+credentials.json
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
