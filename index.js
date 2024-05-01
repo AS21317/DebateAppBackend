@@ -36,7 +36,6 @@ app.use(cookieParser());
 app.use(cors(corsOptions))
 
 app.get('/', async (req,res) => {
-    await connectDB();
     res.status(200).send("Api is working ")
 })
 
@@ -92,10 +91,11 @@ if (isDevelopment) {
         console.log(`Server is running on http://${ip}:${port}/`);
     });
 } else {
-    app.listen(port, () => {
-        connectDB();
-        test();
-        console.log(`Server is running on port ${process.env.PORT}`);
-    });
+    await connectDB();
+    // app.listen(port, () => {
+    //     connectDB();
+    //     test();
+    //     console.log(`Server is running on port ${process.env.PORT}`);
+    // });
 }
 
