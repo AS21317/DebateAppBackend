@@ -9,11 +9,11 @@ import userRoute from './routes/user.js'
 import hostRoute from './routes/host.js'
 import eventRoute from './routes/event.js'
 import adminRoute from './routes/admin.js'
-import contactMessageRoute from './routes/contactMessage.js'
+// import contactMessageRoute from './routes/contactMessage.js'
 import hostApplicationRoute from './routes/hostApplication.js'
 import topicRoute from './routes/topic.js'
 
-import { createEventHelper, cancelEventHelper } from "./controllers/calendarController.js"
+// import { createEventHelper, cancelEventHelper } from "./controllers/calendarController.js"
 
 dotenv.config()
 
@@ -56,7 +56,7 @@ app.use('/api/v1/user', userRoute)
 app.use('/api/v1/host', hostRoute)
 app.use('/api/v1/events', eventRoute)
 app.use('/api/v1/admin', adminRoute)
-app.use('/api/v1/contactMessage', contactMessageRoute)
+// app.use('/api/v1/contactMessage', contactMessageRoute)
 app.use('/api/v1/hostApplication', hostApplicationRoute)
 app.use('/api/v1/topic', topicRoute)
 
