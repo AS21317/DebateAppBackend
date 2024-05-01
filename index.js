@@ -99,4 +99,4 @@ if (isDevelopment) {
     // });
 }
 
-export { app };
+export default app;
