@@ -1,5 +1,5 @@
 import Host from "../models/HostSchema.js";
-import Event from "../models/eventSchema.js";
+import Event from "../models/EventSchema.js";
 import User from "../models/UserSchema.js";
 import { createEventHelper } from "./calendarController.js"
 import { sendEmail } from "./nodeMailer.js";
