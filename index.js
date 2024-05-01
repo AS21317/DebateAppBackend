@@ -91,12 +91,7 @@ if (isDevelopment) {
         console.log(`Server is running on http://${ip}:${port}/`);
     });
 } else {
-    // await connectDB();
-    app.listen(port, () => {
-        connectDB();
-        test();
-        console.log(`Server is running on port ${process.env.PORT}`);
-    });
+    await connectDB();
 }
 
 export default app;
