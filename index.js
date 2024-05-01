@@ -27,7 +27,7 @@ const corsOptions = {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     preflightContinue: false,
-    Credentials: true
+    credentials: true
 }
 
 // Writing required middlewares  
@@ -35,7 +35,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors(corsOptions))
 
-app.get('/', (req,res) => {
+app.get('/', async (req,res) => {
+    await connectDB();
     res.status(200).send("Api is working ")
 })
 
@@ -91,7 +92,7 @@ if (isDevelopment) {
         console.log(`Server is running on http://${ip}:${port}/`);
     });
 } else {
-    app.listen(process.env.PORT, () => {
+    app.listen(port, () => {
         connectDB();
         test();
         console.log(`Server is running on port ${process.env.PORT}`);
