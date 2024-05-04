@@ -97,7 +97,7 @@ export const getAllHosts = async (req, res) => {
   // here we need to apply filter also acc to req demand
   // Query parameters are used to filter the data based on specefic criteria
 
-  const { query } = req.query;
+  const { query, limit } = req.query;
   try {
     let hosts = await Host.find({})
       .populate('user')
@@ -112,6 +112,17 @@ export const getAllHosts = async (req, res) => {
       });
     }
 
+    hosts.sort((a, b) => {
+      const eventsLengthComparison = b.events.length - a.events.length;
+      if (eventsLengthComparison === 0) {
+        return b.user.rating - a.user.rating;
+      }
+      return eventsLengthComparison;
+    });
+
+    if(limit) hosts = hosts.slice(0, limit);
+    
+
     res
       .status(200)
       .send({
@@ -122,6 +133,7 @@ export const getAllHosts = async (req, res) => {
       console.log("All Hosts Fetched Successfully!")
       
   } catch (err) {
+    console.log("Error while fetching all hosts: ", err)
     res
       .status(500)
       .send({ success: false, message: "Error while fetching all hosts." });

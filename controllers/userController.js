@@ -87,14 +87,11 @@ export const getUser = async (req, res) => {
 
 
 export const getAllUsers = async (req, res) => {
-
   const { query } = req.query;
-console.log("Get All Users Called")
+  console.log("Get All Users Called")
   console.log("Query: ", query)
 
-
   let users;
-
   try {
     if (query) {
       users = await User.find({
@@ -188,12 +185,8 @@ export const getEventsByUser = async (req, res) => {
   console.log("Get Events By User Called")
   console.log("userId: ", userId)
 
-
-
   try {
-    const user = await User.findById(userId)
-                            .populate("events")
-                            .select("events");
+    const user = await User.findById(userId).populate("events").select("events");
     
     if (!user) {
       return res.status(404).send({ success: true, message: "User not found." });
@@ -201,7 +194,6 @@ export const getEventsByUser = async (req, res) => {
     
     res.status(200).send({ success: true, message: "User events fetched successfully.", data: user.events });
     console.log("User Events Fetched Successfully!")
-
   } catch (err) {
     console.log("Error while getting user events: ", err);
     res.status(500).send({ success: false, message: "Error while getting user events." });

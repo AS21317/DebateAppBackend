@@ -72,6 +72,7 @@ export const deleteTopic = async (req, res) => {
 
 export const getTopic = async (req, res) => {
     const topicId = req.params.id;
+
     console.log("Get Topic Called")
     console.log("topicId: ", topicId)
     console.log("Req: ", req.body)
@@ -96,8 +97,10 @@ export const getTopic = async (req, res) => {
 
 
 export const getAllTopics = async (req, res) => {
+    const { limit } = req.query;
     console.log("Get All Topics Called")
     console.log("Req: ", req.body)
+    console.log("Query: ", req.query)
     
     try {
         const topics = await Topic.find();
@@ -105,6 +108,16 @@ export const getAllTopics = async (req, res) => {
         if(!topics){
             return res.status(404).send({ success: false, message: "No Topics Found." });
         }
+
+        topics.sort((a, b) => {
+            const eventsLengthComparison = b.events.length - a.events.length;
+            if (eventsLengthComparison === 0) {
+              return b.totalParticipants - a.totalParticipants;
+            }
+            return eventsLengthComparison;
+        });
+
+        if(limit) topics = topics.slice(0, limit);
 
         res.status(200).send({ success: true, message: "All Topics fetched successfully.", data: topics });
     } catch (err) {

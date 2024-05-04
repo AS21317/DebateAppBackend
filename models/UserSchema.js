@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema(
     age: { type: Number, required: true },
     role: {
       type: String,
-      enum: ["user", "host", "admin", "coAdmin"],
+      enum: ["user", "host", "admin", "coAdmin", "expert"],
       default: "user",
     },
 
@@ -53,6 +53,13 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    socials: {
+      instagram: { type: String },
+      linkedin: { type: String },
+      youtube: { type: String },
+      github: { type: String },
+    }
   },
   { timestamps: true }
 );

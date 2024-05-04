@@ -1,6 +1,7 @@
 import Host from "../models/HostSchema.js";
 import Event from "../models/EventSchema.js";
 import User from "../models/UserSchema.js";
+import Topic from "../models/TopicSchema.js";
 import { createEventHelper } from "./calendarController.js"
 import { sendEmail } from "./nodeMailer.js";
 // import Stripe from "stripe";
@@ -22,6 +23,12 @@ export const createEvent = async (req, res) => {
 
     const newEvent = new Event(req.body);
     await newEvent.save();
+
+    const topic = await Topic.findByIdAndUpdate(
+      newEvent.topic,
+      { $push: { events: newEvent._id } },
+      { new: true }
+    )
 
     res.status(201).send({ success: true, message: "Event created successfully", data: newEvent });
     console.log("Event created successfully")
@@ -82,6 +89,8 @@ export const approveEvent = async (req, res) => {
         path: 'attendees.user',
         select: 'name email photo'
       });
+    
+    const updatedHost = await Host.findByIdAndUpdate(event.host, { $push: { events: eventId } })
 
     res.status(200).send({ success: true, message: "Event approved successfully", data: updatedEvent });
     console.log("Event approved successfully")
@@ -474,7 +483,7 @@ export const getEventsByStatus = async(req, res) => {
       })
       .populate({
         path: 'attendees.user',
-        select: 'name email photo'
+        select: 'name email photo age'
       });
     }else{
       events = await Event.find({ status })
@@ -492,7 +501,7 @@ export const getEventsByStatus = async(req, res) => {
         })
         .populate({
           path: 'attendees.user',
-          select: 'name email photo'
+          select: 'name email photo age'
         })
     }
 
@@ -843,3 +852,5 @@ export const updateUserInfoForEvent = async (req, res) => {
 //     });
 //   }
 // };
+
+

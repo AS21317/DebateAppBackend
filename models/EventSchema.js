@@ -7,6 +7,10 @@ const EventSchema = new mongoose.Schema(
       ref: "Host",
       required: true,
     },
+    coHost: {
+      type: mongoose.Types.ObjectId,
+      ref: "Host",
+    },
     attendees: [{
       user: {
         type: mongoose.Types.ObjectId,
@@ -49,7 +53,7 @@ const EventSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["debate", "groupDiscussion", "expertTalk"],
+      enum: ["Debate", "GD", "ExpertTalk"],
       required: true
     },
     language: {
@@ -63,8 +67,8 @@ const EventSchema = new mongoose.Schema(
     // upcoming means the event has been approved by the host and is in upcoming days/time
     status: {
       type: String,
-      enum: ["pending", "completed", "cancelled", "upcoming"],
-      default: "pending",
+      enum: ["requestedByAdmin", "requestedByHost", "upcoming", "completed", "cancelled"],
+      default: "requestedByAdmin",
     },
     reasonIfCancelled: { type: String },
 
@@ -80,10 +84,56 @@ const EventSchema = new mongoose.Schema(
     // calendarEventId: { type: String },
 
     // event reviews by the users and the host
-    eventReviews: { type: [String] },
+    eventReviews: { 
+      type: [{
+        fromUser: {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
+        review: { type: String },
+        rating: { type: Number, min: 0, max: 5 },
+      }],
+    },
     
     // host reviews by the users
-    hostReviews: { type: [String] },
+    hostReviews: { 
+      type: [{
+        fromUser: {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
+        toHost: {
+          type: mongoose.Types.ObjectId,
+          ref: "Host",
+        },
+        review: { type: String },
+        rating: { type: Number, min: 0, max: 5 },
+      }], 
+    },
+
+    // user revies by the users
+    userReviews: { 
+      type: [{
+        fromUser: {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
+        toUser: {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
+        review: { type: String },
+        rating: { type: Number, min: 0, max: 5 },
+      }],
+    },
+
+    // 0th index -> 1st winner, 1st index -> 2nd winner, 2nd index -> 3rd winner
+    winners: {
+      type: [{
+        type: mongoose.Types.ObjectId,
+        ref: "User",
+      }]
+    },
   },
   { timestamps: true }
 );
