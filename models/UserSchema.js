@@ -53,6 +53,10 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    appliedForExpert: {
+      type: Boolean,
+      default: false,
+    },
 
     socials: {
       instagram: { type: String },

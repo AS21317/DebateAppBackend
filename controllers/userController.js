@@ -1,5 +1,8 @@
 import { populate } from "dotenv";
 import User from "../models/UserSchema.js";
+import Host from "../models/HostSchema.js";
+import Expert from "../models/ExpertSchema.js";
+import Admin from "../models/AdminSchema.js";
 
 
 export const updateUser = async (req, res) => {
@@ -44,9 +47,16 @@ export const deleteUser = async (req, res) => {
 
   try {
     const user = await User.findByIdAndDelete(id);
-
     if(!user) {
       return res.status(404).send({ success: false, message: "User not found." });
+    }
+
+    if(role === "host"){
+      await Host.findOneAndDelete({ user: id });
+    }else if(role === "expert"){
+      await Expert.findOneAndDelete({ user: id });
+    }else if(role === "admin"){
+      await Admin.findOneAndDelete({ user: id });
     }
 
     res.status(200).send({ success: true, message: "Successfully deleted." });

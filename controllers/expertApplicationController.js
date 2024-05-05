@@ -22,24 +22,27 @@ export const createExpertApplication = async (req, res) => {
     console.log("Create ExpertApplication called")
     console.log("Req. Body: ", expertApplication)
 
+    const { user: userId } = expertApplication
     try {
-        const user = User.findById(userId);
+        let user = await User.findById(userId);
         if(!user){
             res.status(404).send({ success: false, message: "User not found" });
             console.log("User not found")
             return;
         }
 
+        user = await User.findByIdAndUpdate(userId, { appliedForExpert: true }, { new: true });
+
         const newExpertApplication = new ExpertApplicationSchema(expertApplication);
         await newExpertApplication.save();
 
         await populate(newExpertApplication);
 
-        res.status(201).send({ success: true, message: "ExpertApplication created successfully", data: newExpertApplication });
+        res.status(200).send({ success: true, message: "ExpertApplication created successfully", data: { expertApplication: newExpertApplication, user } });
         console.log("ExpertApplication created successfully")
     } catch (error) {
         console.log(error)
-        res.status(409).send({ success: false, message: "Error while creating expert Application" });
+        res.status(500).send({ success: false, message: "Error while creating expert Application" });
     }
 }
 
@@ -137,12 +140,15 @@ export const approveExpertApplication = async (req, res) => {
             return;
         }
 
-        await populate(expertApplication);
+        const user = await User.findByIdAndUpdate(userId, { role: "expert" }, { new: true });
 
         const expert = new ExpertSchema(expertApplication)
         await expert.save();
 
-        res.status(200).send({ success: true, message: "Expert Application approved successfully", data: { expertApplication, expert } });
+        await populate(expertApplication);
+        await populate(expert);
+
+        res.status(200).send({ success: true, message: "Expert Application approved successfully", data: { expertApplication, expert, user } });
         console.log("Expert Application approved successfully");
     } catch (error) {
         console.log(error);

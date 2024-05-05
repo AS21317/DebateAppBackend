@@ -103,7 +103,7 @@ export const getAllTopics = async (req, res) => {
     console.log("Query: ", req.query)
     
     try {
-        const topics = await Topic.find();
+        let topics = await Topic.find();
 
         if(!topics){
             return res.status(404).send({ success: false, message: "No Topics Found." });
