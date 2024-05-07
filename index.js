@@ -3,6 +3,8 @@ import cookieParser from "cookie-parser"
 import cors from "cors"
 import  mongoose  from "mongoose"
 import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url';
 
 import authRoute from './routes/auth.js'
 import userRoute from './routes/user.js'
@@ -36,6 +38,19 @@ const corsOptions = {
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors(corsOptions))
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
+// Serve static files from the 'build' directory
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Define a catch-all route that serves index.html
+app.get('/*', function(req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 app.get('/', async (req,res) => {
     res.status(200).send("Api is working ")
