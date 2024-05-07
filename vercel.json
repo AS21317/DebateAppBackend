@@ -5,12 +5,11 @@
     {
       "src": "/(.*)",
       "dest": "/",
-      "headers": [
-        {
-          "source": "**/*.js",
-          "headers": [{ "key": "Content-Type", "value": "application/javascript" }]
+      "headers": {
+        "**/*.js": {
+          "Content-Type": "application/javascript"
         }
-      ]
+      }
     }
   ]
 }
