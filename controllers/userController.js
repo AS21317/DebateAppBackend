@@ -97,7 +97,7 @@ export const getUser = async (req, res) => {
 
 
 export const getAllUsers = async (req, res) => {
-  const { query } = req.query;
+  const { query, role } = req.query;
   console.log("Get All Users Called")
   console.log("Query: ", query)
 
@@ -110,7 +110,9 @@ export const getAllUsers = async (req, res) => {
           { email: { $regex: query, $options: "i" } }
         ]
       }).populate("events").select("-password");
-    } else {
+    } else if(role){
+      users = await User.find({ role }).select("-password");
+    }else{
       users = await User.find({}).select("-password");
     }
 

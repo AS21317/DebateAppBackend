@@ -2,6 +2,8 @@ import User from "../models/UserSchema.js";
 import Host from "../models/HostSchema.js";
 import Admin from "../models/AdminSchema.js";
 import HostApplication from "../models/HostApplicationSchema.js";
+import ExpertSchema from "../models/ExpertSchema.js";
+import { sendEmail } from "./nodeMailer.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
@@ -120,35 +122,38 @@ export const registerHost = async (req, res) => {
   console.log('Register Host Called with id: ', userId)
 
   try{
-    let host = await Host.findOne({ user: userId });
-    if(host){
-      return res.status(404).send({ success: false, message: "Host already exists." });
+    const user = await User.findById(userId);
+    if(!user){
+      return res.status(404).send({ success: false, message: "User not found." });
     }
 
-    const updatedHostApplication = await HostApplication.findOneAndUpdate(
-      { user: userId },
-      { status: "approved" },
-      { new: true }
-    )
-
-    if(!updatedHostApplication){
-      return res.status(404).send({ success: false, message: "Host Application not found." });
+    if(user.role === "host"){
+      console.log("User is already a Host")
+      return res.status(400).send({ success: false, message: "User is already a Host" });
     }
+
+    let updatedHostApplication;
+    if(user.role !== "admin" || user.role !== "coAdmin"){
+        updatedHostApplication = await HostApplication.findOneAndUpdate(
+        { user: userId },
+        { status: "approved" },
+        { new: true }
+      )
+      if(!updatedHostApplication){
+        return res.status(404).send({ success: false, message: "Host Application not found." });
+      }
+    }
+
+    let host = await Host.create({ 
+      user: userId,
+      expertise: updatedHostApplication.expertise || [],
+    });
 
     const updatedUser = await User.findByIdAndUpdate(userId,
       { role: "host" },
       { new: true }
     ).select("-password");
 
-    if(!updatedUser){
-      return res.status(404).send({ success: false, message: "User not found." });
-    }
-
-    host = await Host.create({ 
-      user: userId,
-      expertise: updatedHostApplication.expertise,
-    });
-    
     res.status(200).send({ success: true, message: "Successfully Registered Host!", data: updatedUser });
     console.log("Host Registered Successfully!")
   }catch(err){
@@ -163,21 +168,24 @@ export const registerAdmin = async (req, res) => {
   console.log('Register Admin Called with id: ', userId)
 
   try{
-    let admin = await Admin.findOne({ user: userId });
-    if(admin){
-      return res.status(400).send({ status: false, message: "Admin already exists." });
+    let user = await User.findById(userId);
+    if(!user) {
+      res.status(404).send({ success: false, message: "User not found" });
+      console.log("User not found");
+      return;
     }
+    if(user.role === "admin"){
+      res.status(400).send({ success: false, message: "User is already an Admin" });
+      console.log("User is already an Admin");
+      return;
+    }
+
+    const admin = await Admin.create({ user: user._id });
 
     const updatedUser = await User.findByIdAndUpdate(userId,
       { role: "admin" },
       { new: true }
     ).select("-password")
-
-    if(!updatedUser){
-      return res.status(404).send({ status: false, message: "User not found." });
-    }
-
-    admin = await Admin.create({ user: updatedUser._id });
 
     res.status(200).send({ status: true, message: "Successfully Registered as Admin!", data: updatedUser })
     console.log("Admin Registered Successfully!")
@@ -193,21 +201,95 @@ export const registerCoAdmin = async (req, res) => {
   console.log('Register CoAdmin Called with id: ', userId)
 
   try{
+    let user = await User.findById(userId);
+    if(!user) {
+      res.status(404).send({ success: false, message: "User not found" });
+      console.log("User not found");
+      return;
+    }
+    if(user.role === "coAdmin" || user.role === "admin"){
+      res.status(400).send({ success: false, message: "User is already a coAdmin or Admin" });
+      console.log("User is already a coAdmin or Admin");
+      return;
+    }
+
+    const coAdmin = await Admin.create({ user: user._id });
+
     const updatedUser = await User.findByIdAndUpdate(userId,
       { role: "coAdmin" },
       { new: true }
     ).select("-password")
 
-    if(!updatedUser){
-      return res.status(404).send({ status: false, message: "User not found." });
-    }
-
-    const coAdmin = await Admin.create({ user: updatedUser._id });
 
     res.status(200).send({ status: true, message: "Successfully Registered as coAdmin!", data: updatedUser })
     console.log("CoAdmin Registered Successfully!")
   }catch(err){
     console.log("Error while registering coAdmin: ", err);
     res.status(500).send({ status: false, message: "Error while registering for coAdmin." });
+  }
+}
+
+
+export const registerExpert = async (req, res) => {
+  console.log("Create Expert Called: ", req.body);
+
+  const userId = req.params.id;
+  const { ...rest } = req.body;
+
+  try {
+      let user = await User.findById(userId);
+      if(!user) {
+          res.status(404).send({ success: false, message: "User not found" });
+          console.log("User not found");
+          return;
+      }
+
+      const expert = await ExpertSchema.findOne({ user: userId });
+      if(expert) {
+          res.status(400).send({ success: false, message: "Expert already exists" });
+          console.log("Expert already exists");
+          return;
+      }
+
+      const newExpert = new ExpertSchema({ user: userId, ...rest });
+      const savedExpert = await newExpert.save()
+      savedExpert.populate({
+        "path": "user",
+        "select": "-password"
+      })
+
+      user = await User.findByIdAndUpdate(userId, { role: "expert" }, { new: true }).select("-password");
+
+      const subject = "Expert Profile Created";
+      const text = `Dear ${user.name}, <br><br>
+
+      We are thrilled to inform you that you have been promoted to the position of Expert within our community. This promotion is a testament to your dedication, expertise, and valuable contributions to our community.
+      <br><br>
+
+      As an Expert, you will play a crucial role in guiding and supporting other members, sharing your knowledge, and helping to foster a collaborative and enriching environment for everyone.
+      <br><br>
+
+      We have recognized your exceptional skills and commitment, and we are confident that you will continue to excel in your new role. Your insights and expertise will be instrumental in shaping the future of our community.
+      <br><br>
+
+      Please accept our heartfelt congratulations on this well-deserved promotion. We look forward to seeing the positive impact you will make as an Expert.
+      <br><br>
+
+      If you have any questions or need further information about your new role, please feel free to reach out to us. We are here to support you every step of the way.
+      <br><br>
+
+      Once again, congratulations on this achievement!
+      <br><br>
+
+      Best regards, <br>
+      SpeakIndia Team <br>`
+
+      await sendEmail(user.email, subject, text);
+
+      res.status(200).send({ success: true, message: "Expert created successfully", data: { expert: savedExpert, user } });
+      console.log("Expert Created Successfully !!");
+  } catch (err) {
+      console.log(err);
+      res.status(500).send({ success: false, message: "Error while creating expert" });
   }
 }

@@ -11,6 +11,10 @@ const EventSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "Host",
     },
+    expert: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Expert',
+    },
     attendees: [{
       user: {
         type: mongoose.Types.ObjectId,
@@ -67,7 +71,7 @@ const EventSchema = new mongoose.Schema(
     // upcoming means the event has been approved by the host and is in upcoming days/time
     status: {
       type: String,
-      enum: ["requestedByAdmin", "requestedByHost", "upcoming", "completed", "cancelled"],
+      enum: ["requestedByAdmin", "requestedByHost", "requestedByExpert", "upcoming", "completed", "cancelled"],
       default: "requestedByAdmin",
     },
     reasonIfCancelled: { type: String },

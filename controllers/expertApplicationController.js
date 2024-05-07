@@ -1,6 +1,6 @@
 import ExpertApplicationSchema from '../models/ExpertApplicationSchema.js';
 import ExpertSchema from '../models/ExpertSchema.js';
-import User from '../models/User.js';
+import User from '../models/UserSchema.js';
 
 
 // Helper Functions
@@ -9,7 +9,7 @@ import User from '../models/User.js';
 const populate = async (expert) => {
     await expert.populate({
         path: "user",
-        select: "name email photo age gender qualifications experiences bio about socials"
+        select: "-password"
     })
 }
 
@@ -31,6 +31,12 @@ export const createExpertApplication = async (req, res) => {
             return;
         }
 
+        if(user.appliedForExpert){
+            res.status(400).send({ success: false, message: "User already applied for expert" });
+            console.log("User already applied for expert")
+            return;
+        }
+
         user = await User.findByIdAndUpdate(userId, { appliedForExpert: true }, { new: true });
 
         const newExpertApplication = new ExpertApplicationSchema(expertApplication);
@@ -48,23 +54,18 @@ export const createExpertApplication = async (req, res) => {
 
 
 export const getExpertApplication = async (req, res) => {
-    const userId = req.params.userId;
     const { ...rest } = req.query;
 
-    console.log("Getting expert application with userId: ", userId);
+    console.log("Getting expert application");
     console.log("Query: ", rest)
 
     try {
-        const expertApplication = await ExpertApplicationSchema.findOne({ user: userId, ...rest });
-        if(!expertApplication) {
-            res.status(404).send({ success: false, message: "Expert Application not found" });
-            console.log("Expert Application not found");
-            return;
+        const expertApplications = await ExpertApplicationSchema.find(rest);
+        for (let i = 0; i < expertApplications.length; i++) {
+            await populate(expertApplications[i]);
         }
 
-        await populate(expertApplication);
-
-        res.status(200).send({ success: true, message: "Expert Application found successfully", data: expertApplication });
+        res.status(200).send({ success: true, message: "Expert Application found successfully", data: expertApplications });
         console.log("Expert Application found successfully");
     } catch (error) {
         console.log(error);
@@ -125,28 +126,36 @@ export const deleteExpertApplication = async (req, res) => {
 
 
 export const approveExpertApplication = async (req, res) => {
-    const userId = req.params.userId;
-    console.log("Approving expert application with userId: ", userId);
+    const id = req.params.id;
+    console.log("Approving expert application with id: ", id);
 
     try {
-        const expertApplication = await ExpertApplicationSchema.findOneAndUpdate(
-            { user: userId }, 
-            { status: "approved" }, 
-            { new: true }
-        );
+        let expertApplication = await ExpertApplicationSchema.findById(id);
         if(!expertApplication) {
             res.status(404).send({ success: false, message: "Expert Application not found" });
             console.log("Expert Application not found");
             return;
         }
+        if(expertApplication.status === "approved") {
+            res.status(400).send({ success: false, message: "Expert Application already approved" });
+            console.log("Expert Application already approved");
+            return;
+        }
 
-        const user = await User.findByIdAndUpdate(userId, { role: "expert" }, { new: true });
+        expertApplication = await ExpertApplicationSchema.findByIdAndUpdate(
+            id,
+            { status: "approved" }, 
+            { new: true }
+        );
 
-        const expert = new ExpertSchema(expertApplication)
+        const user = await User.findByIdAndUpdate(expertApplication.user, { role: "expert" }, { new: true });
+
+        const { _id, ...rest } = expertApplication.toObject();
+        const expert = new ExpertSchema(rest)
         await expert.save();
 
-        await populate(expertApplication);
-        await populate(expert);
+        // await populate(expertApplication);
+        // await populate(expert);
 
         res.status(200).send({ success: true, message: "Expert Application approved successfully", data: { expertApplication, expert, user } });
         console.log("Expert Application approved successfully");
@@ -155,4 +164,5 @@ export const approveExpertApplication = async (req, res) => {
         res.status(500).send({ success: false, message: "Error while approving expert application" });
     }
 }
+
 

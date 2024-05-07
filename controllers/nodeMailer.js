@@ -13,7 +13,6 @@ let transporter = nodemailer.createTransport({
 
 export const sendEmail = async (to, subject, html) => {
     console.log("Sending email to: ", to)
-    console.log(process.env.MAIL_PASS)
     try{
         let info = await transporter.sendMail({
             from:process.env.MAIL_FROM,

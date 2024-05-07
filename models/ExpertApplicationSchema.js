@@ -8,7 +8,7 @@ const ExpertApplicationSchema = new mongoose.Schema(
             required: true
         },
         expertise: {
-            type: String,
+            type: [String],
             required: true
         },
         resumeLink: { type: String },

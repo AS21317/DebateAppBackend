@@ -2,20 +2,21 @@ import Host from "../models/HostSchema.js";
 import Event from "../models/EventSchema.js";
 import User from "../models/UserSchema.js";
 import Topic from "../models/TopicSchema.js";
+import Expert from '../models/ExpertSchema.js';
 import { createEventHelper } from "./calendarController.js"
 import { sendEmail } from "./nodeMailer.js";
 // import Stripe from "stripe";
 
 
 export const createEvent = async (req, res) => {
-  const hostId = req.params.hostId;
   console.log("Create Event Called")
-  console.log("Host ID: ", hostId)
   console.log("Req Body: ", req.body)
 
-  req.body = { ...req.body, host: hostId };
-
   try {
+    const hostId = req.body.host;
+    req.body.expert = req.body.expert === ""? null: req.body.expert
+    req.body.coHost = req.body.coHost === ""? null: req.body.coHost
+
     const host = await Host.findById(hostId);
     if (!host) {
       return res.status(404).send({ success: false, message: "Host not found" });
@@ -256,16 +257,18 @@ export const getEvent = async (req, res) => {
 
 export const getEventsByHost = async (req, res) => {
   console.log("Get Event Called")
-  console.log("Req Body: ", req.body);
+  console.log("Params: ", req.params)
+  console.log("Query: ", req.query)
 
   const {userId} = req.params;
+  const {limit} = req.query;
   try{
     const host = Host.findOne({ user: userId })
     if(!hostId){
       return res.status(404).send({ success: false, message: "Host not found" });
     }
 
-    const event = await Event.find({ host: host._id })
+    const events = await Event.find({ host: host._id })
     .populate({
       path: 'host',
       select: 'user expertise',
@@ -283,11 +286,17 @@ export const getEventsByHost = async (req, res) => {
       select: 'name email photo'
     });
 
-    if (!event) {
+    if (!events) {
       return res.status(404).send({ success: false, message: "No Event found" });
     }
 
-    res.status(200).send({ success: true, message: "Successsfully Fetched Events.", data: event });
+    events.sort((a,b) => {
+      return new Date(a.startDate) - new Date(b.startDate);
+    })
+
+    if(limit) events.slice(0, limit);
+
+    res.status(200).send({ success: true, message: "Successsfully Fetched Events.", data: events });
     console.log("Event fetched successfully");
   } catch(err){
     console.log("Error while fetching event: ", err);
@@ -444,9 +453,9 @@ export const getEventsByLanguage = async(req, res) => {
 
 export const getEventsByStatus = async(req, res) => {
   console.log("Get Events by Status Called")
-  console.log("Req Body: ", req.body);
+  console.log("Query Params: ", req.query);
 
-  const { status } = req.body;
+  const { status, limit, ...rest } = req.query;
   let events;
 
   try{
@@ -467,7 +476,8 @@ export const getEventsByStatus = async(req, res) => {
 
       events = await Event.find({
         status: "upcoming",
-        startDate: dateString
+        startDate: dateString,
+        ...rest
       })
       .populate({
         path: 'host',
@@ -478,6 +488,14 @@ export const getEventsByStatus = async(req, res) => {
         }      
       })
       .populate({
+        path: 'expert',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }
+      })
+      .populate({
         path: 'topic',
         select: 'name'
       })
@@ -486,9 +504,17 @@ export const getEventsByStatus = async(req, res) => {
         select: 'name email photo age'
       });
     }else{
-      events = await Event.find({ status })
+      events = await Event.find({ status, ...rest })
         .populate({
           path: 'host',
+          select: 'user expertise',
+          populate: {
+            path: 'user',
+            select: 'name email photo'
+          }
+        })
+        .populate({
+          path: 'expert',
           select: 'user expertise',
           populate: {
             path: 'user',
@@ -509,6 +535,12 @@ export const getEventsByStatus = async(req, res) => {
       return res.status(404).send({ success: false, message: "No Events found." });
     }
 
+    events.sort((a,b) => {
+      return new Date(a.startDate) - new Date(b.startDate);
+    })
+
+    if(limit) events.slice(0, limit);
+
     res.status(200).send({ success: true, message: "Successsfully Fetched Events.", data: events });
     console.log("Events fetched successfully")
   } catch(err){
@@ -520,9 +552,11 @@ export const getEventsByStatus = async(req, res) => {
 
 export const getEventsByHostAndStatus = async(req, res) => {
   console.log("Get Events by Host and Status Called")
-  console.log("Req Body: ", req.body);
+  console.log("Query: ", req.query);
+  console.log("Params: ", req.params)
 
-  const { userId, status } = req.body;
+  const { userId, status } = req.params;
+  const { limit } = req.query;
   let events;
   try{
     const host = await Host.findOne({ user: userId });
@@ -584,6 +618,12 @@ export const getEventsByHostAndStatus = async(req, res) => {
       return res.status(404).send({ success: false, message: "No Events found" });
     }
 
+    events.sort((a,b) => {
+      return new Date(a.startDate) - new Date(b.startDate);
+    })
+
+    if(limit) events.slice(0, limit);
+
     res.status(200).send({ success: true, message: "Successsfully Fetched Events.", data: events });
     console.log("Events fetched successfully")
   }catch(err){
@@ -592,6 +632,105 @@ export const getEventsByHostAndStatus = async(req, res) => {
   }
 }
 
+
+export const getEventsByExpertAndStatus = async (req, res) => {
+  console.log("Get Events by Expert and Status Called")
+  console.log("Query: ", req.query);
+  console.log("Params: ", req.params)
+
+  const { userId, status } = req.params;
+  const { limit } = req.query;
+  let events;
+  try{
+    const expert = await Expert.findOne({ user: userId });
+    if(!expert){
+      console.log("Expert not found")
+      return res.status(404).send({ success: false, message: "Expert not found." });
+    }
+
+    if(status === 'today'){
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()+1);
+
+      events = await Event.find({
+        expert: expert._id,
+        status,
+        $or: [
+          { startDate: { $gte: startOfDay, $lt: endOfDay } },
+          { endDate: { $gte: startOfDay, $lt: endOfDay } }
+        ]
+      })
+      .populate({
+        path: 'host',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }      
+      })
+      .populate({
+        path: 'expert',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }
+      })
+      .populate({
+        path: 'topic',
+        select: 'name'
+      })
+      .populate({
+        path: 'attendees.user',
+        select: 'name email photo'
+      });
+    }
+    else{
+      events = await Event.find({ expert: expert._id, status })
+      .populate({
+        path: 'host',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }      
+      })
+      .populate({
+        path: 'expert',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }
+      })
+      .populate({
+        path: 'topic',
+        select: 'name'
+      })
+      .populate({
+        path: 'attendees.user',
+        select: 'name email photo'
+      });
+    }
+
+    if (!events) {
+      return res.status(404).send({ success: false, message: "No Events found" });
+    }
+
+    events.sort((a,b) => {
+      return new Date(a.startDate) - new Date(b.startDate);
+    })
+
+    if(limit) events.slice(0, limit);
+
+    res.status(200).send({ success: true, message: "Successsfully Fetched Events.", data: events });
+    console.log("Events fetched successfully")
+  }catch(err){
+    console.log("Error while fetching events by expert and status: ", err);
+    res.status(500).send({ success: false, message: "Error while fetching events by expert and status." });
+  }
+}
 
 
 
