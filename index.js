@@ -45,12 +45,12 @@ const __dirname = path.dirname(__filename);
 
 
 // Serve static files from the 'build' directory
-app.use(express.static(path.join(__dirname, 'build')));
+// app.use(express.static(path.join(__dirname, 'build')));
 
-// Define a catch-all route that serves index.html
-app.get('/*', function(req, res) {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
+// // Define a catch-all route that serves index.html
+// app.get('/*', function(req, res) {
+//   res.sendFile(path.join(__dirname, 'build', 'index.html'));
+// });
 
 app.get('/', async (req,res) => {
     res.status(200).send("Api is working ")
