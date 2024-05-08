@@ -16,7 +16,7 @@ const resend = new Resend('re_9dRvusUd_FJe2krnJYDYRBV2AJCQX3tso')
 //     },
 // });
 
-export const sendEmail = async (to, subject, html) => {
+export const sendEmail = async (toUser, subject, html) => {
     console.log("Sending email to: ", to)
     try{
         // let info = await transporter.sendMail({
@@ -26,16 +26,12 @@ export const sendEmail = async (to, subject, html) => {
         //     html,
         // });
 
-        const { data, error } = await resend.emails.send({
-            from:process.env.MAIL_FROM,
-            to,
+        const data = await resend.emails.send({
+            from: 'Acme <onboarding@resend.dev>',
+            to: [toUser],
             subject,
-            html,
-        })
-
-        if (error) {
-            return console.error({ error });
-        }
+            html
+        });
 
         console.log(`Message sent: ${data}`);
     }catch(err){
