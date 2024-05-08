@@ -26,7 +26,7 @@ export const sendEmail = async (to, subject, html) => {
         //     html,
         // });
 
-        resend.emails.send({
+        const info = resend.emails.send({
             from:process.env.MAIL_FROM,
             to,
             subject,
