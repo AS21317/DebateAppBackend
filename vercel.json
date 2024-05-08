@@ -4,12 +4,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/",
-      "headers": {
-        "**/*.js": {
-          "Content-Type": "application/javascript"
-        }
-      }
+      "dest": "/"
     }
   ]
 }
