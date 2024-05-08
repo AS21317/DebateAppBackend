@@ -79,16 +79,16 @@ export const approveEvent = async (req, res) => {
         select: 'user expertise',
         populate: {
           path: 'user',
-          select: 'name email photo'
+          select: 'name email photo age'
         }      
       })
       .populate({
         path: 'topic',
-        select: 'name'
+        select: 'name photo'
       })
       .populate({
         path: 'attendees.user',
-        select: 'name email photo'
+        select: 'name email photo age'
       });
     
     const updatedHost = await Host.findByIdAndUpdate(event.host, { $push: { events: eventId } })
@@ -132,16 +132,16 @@ export const cancelEvent = async (req, res) => {
         select: 'user expertise',
         populate: {
           path: 'user',
-          select: 'name email photo'
+          select: 'name email photo age'
         }      
       })
       .populate({
         path: 'topic',
-        select: 'name'
+        select: 'name photo'
       })
       .populate({
         path: 'attendees.user',
-        select: 'name email photo'
+        select: 'name email photo age'
       });
 
     res.status(200).send({ success: true, message: "Event cancelled successfully", data: updatedEvent });
@@ -170,16 +170,16 @@ export const updateEventDetails = async (req, res) => {
         select: 'user expertise',
         populate: {
           path: 'user',
-          select: 'name email photo'
+          select: 'name email photo age'
         }      
       })
       .populate({
         path: 'topic',
-        select: 'name'
+        select: 'name photo'
       })
       .populate({
         path: 'attendees.user',
-        select: 'name email photo'
+        select: 'name email photo age'
       });
 
     if (!updatedEvent) {
@@ -235,7 +235,7 @@ export const getEvent = async (req, res) => {
     })
     .populate({
       path: 'topic',
-      select: 'name'
+      select: 'name photo'
     })
     .populate({
       path: 'attendees.user',
@@ -279,7 +279,7 @@ export const getEventsByHost = async (req, res) => {
     })
     .populate({
       path: 'topic',
-      select: 'name'
+      select: 'name photo'
     })
     .populate({
       path: 'attendees.user',
@@ -321,7 +321,7 @@ export const getAllEvents = async (req, res) => {
     })
     .populate({
       path: 'topic',
-      select: 'name'
+      select: 'name photo'
     })
     .populate({
       path: 'attendees.user',
@@ -355,7 +355,7 @@ export const getEventsByType = async(req, res) => {
     })
     .populate({
       path: 'topic',
-      select: 'name'
+      select: 'name photo'
     })
     .populate({
       path: 'attendees.user',
@@ -393,7 +393,7 @@ export const getEventsByTopic = async(req, res) => {
     })
     .populate({
       path: 'topic',
-      select: 'name'
+      select: 'name photo'
     })
     .populate({
       path: 'attendees.user',
@@ -430,7 +430,7 @@ export const getEventsByLanguage = async(req, res) => {
     })
     .populate({
       path: 'topic',
-      select: 'name'
+      select: 'name photo'
     })
     .populate({
       path: 'attendees.user',
@@ -484,7 +484,7 @@ export const getEventsByStatus = async(req, res) => {
         select: 'user expertise',
         populate: {
           path: 'user',
-          select: 'name email photo'
+          select: 'name email photo age'
         }      
       })
       .populate({
@@ -497,7 +497,7 @@ export const getEventsByStatus = async(req, res) => {
       })
       .populate({
         path: 'topic',
-        select: 'name'
+        select: 'name photo'
       })
       .populate({
         path: 'attendees.user',
@@ -582,16 +582,16 @@ export const getEventsByHostAndStatus = async(req, res) => {
         select: 'user expertise',
         populate: {
           path: 'user',
-          select: 'name email photo'
+          select: 'name email photo age'
         }      
       })
       .populate({
         path: 'topic',
-        select: 'name'
+        select: 'name photo'
       })
       .populate({
         path: 'attendees.user',
-        select: 'name email photo'
+        select: 'name email photo age'
       });
     }
     else{
@@ -601,16 +601,16 @@ export const getEventsByHostAndStatus = async(req, res) => {
         select: 'user expertise',
         populate: {
           path: 'user',
-          select: 'name email photo'
+          select: 'name email photo age'
         }      
       })
       .populate({
         path: 'topic',
-        select: 'name'
+        select: 'name photo'
       })
       .populate({
         path: 'attendees.user',
-        select: 'name email photo'
+        select: 'name email photo age'
       });
     }
 
@@ -666,7 +666,7 @@ export const getEventsByExpertAndStatus = async (req, res) => {
         select: 'user expertise',
         populate: {
           path: 'user',
-          select: 'name email photo'
+          select: 'name email photo age'
         }      
       })
       .populate({
@@ -679,11 +679,11 @@ export const getEventsByExpertAndStatus = async (req, res) => {
       })
       .populate({
         path: 'topic',
-        select: 'name'
+        select: 'name photo'
       })
       .populate({
         path: 'attendees.user',
-        select: 'name email photo'
+        select: 'name email photo age'
       });
     }
     else{
@@ -693,7 +693,7 @@ export const getEventsByExpertAndStatus = async (req, res) => {
         select: 'user expertise',
         populate: {
           path: 'user',
-          select: 'name email photo'
+          select: 'name email photo age'
         }      
       })
       .populate({
@@ -706,11 +706,11 @@ export const getEventsByExpertAndStatus = async (req, res) => {
       })
       .populate({
         path: 'topic',
-        select: 'name'
+        select: 'name photo'
       })
       .populate({
         path: 'attendees.user',
-        select: 'name email photo'
+        select: 'name email photo age'
       });
     }
 
@@ -769,6 +769,8 @@ export const registerUserForEvent = async (req, res) => {
       return res.status(400).send({ success: false, message: "User is already registered for the event." });
     }
 
+    
+
     user = await User.findByIdAndUpdate(userId,
       { $push: { events: eventId } },
       { new: true }
@@ -779,7 +781,7 @@ export const registerUserForEvent = async (req, res) => {
       { new: true }
     ).populate({
       path: 'topic',
-      select: 'name'
+      select: 'name photo'
     })
 
     await sendEmail(user.email, "SpeakIndia's Event Registration Confirmation", `

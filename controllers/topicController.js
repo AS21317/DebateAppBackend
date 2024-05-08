@@ -4,14 +4,14 @@ import Topic from "../models/TopicSchema.js";
 export const createTopic = async (req, res) => {
     console.log("Create Topic Called: ", req.body)
 
-    const { name } = req.body;
+    const { name, photo } = req.body;
     try {
         const topic = Topic.findOne({ name });
         if(!topic) {
             return res.status(400).send({ status: false, message: "Topic already exists." });
         }
 
-        const newTopic = new Topic({ name });
+        const newTopic = new Topic({ name, photo });
         const savedTopic = await newTopic.save();
 
         res.status(200).send({ status: true, message: "Topic created successfully", data: savedTopic });
