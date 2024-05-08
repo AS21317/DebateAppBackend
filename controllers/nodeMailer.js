@@ -17,7 +17,7 @@ const resend = new Resend('re_9dRvusUd_FJe2krnJYDYRBV2AJCQX3tso')
 // });
 
 export const sendEmail = async (toUser, subject, html) => {
-    console.log("Sending email to: ", to)
+    console.log("Sending email to: ", toUser)
     try{
         // let info = await transporter.sendMail({
         //     from:process.env.MAIL_FROM,
