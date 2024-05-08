@@ -226,21 +226,29 @@ export const getEvent = async (req, res) => {
   try{
     const event = await Event.findById(eventId)
     .populate({
-      path: 'host',
-      select: 'user expertise',
-      populate: {
-        path: 'user',
-        select: 'name email photo'
-      }      
-    })
-    .populate({
-      path: 'topic',
-      select: 'name photo'
-    })
-    .populate({
-      path: 'attendees.user',
-      select: 'name email photo'
-    });
+        path: 'host',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo age'
+        }      
+      })
+      .populate({
+        path: 'expert',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }
+      })
+      .populate({
+        path: 'topic',
+        select: 'name photo'
+      })
+      .populate({
+        path: 'attendees.user',
+        select: 'name email photo age'
+      });
 
     if (!event) {
       return res.status(404).send({ success: false, message: "No Event found" });
@@ -270,21 +278,29 @@ export const getEventsByHost = async (req, res) => {
 
     const events = await Event.find({ host: host._id })
     .populate({
-      path: 'host',
-      select: 'user expertise',
-      populate: {
-        path: 'user',
-        select: 'name email photo'
-      }      
-    })
-    .populate({
-      path: 'topic',
-      select: 'name photo'
-    })
-    .populate({
-      path: 'attendees.user',
-      select: 'name email photo'
-    });
+        path: 'host',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo age'
+        }      
+      })
+      .populate({
+        path: 'expert',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }
+      })
+      .populate({
+        path: 'topic',
+        select: 'name photo'
+      })
+      .populate({
+        path: 'attendees.user',
+        select: 'name email photo age'
+      });
 
     if (!events) {
       return res.status(404).send({ success: false, message: "No Event found" });
@@ -312,21 +328,29 @@ export const getAllEvents = async (req, res) => {
   try{
     const events = await Event.find()
     .populate({
-      path: 'host',
-      select: 'user expertise',
-      populate: {
-        path: 'user',
-        select: 'name email photo'
-      }      
-    })
-    .populate({
-      path: 'topic',
-      select: 'name photo'
-    })
-    .populate({
-      path: 'attendees.user',
-      select: 'name email photo'
-    });
+        path: 'host',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo age'
+        }      
+      })
+      .populate({
+        path: 'expert',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }
+      })
+      .populate({
+        path: 'topic',
+        select: 'name photo'
+      })
+      .populate({
+        path: 'attendees.user',
+        select: 'name email photo age'
+      });
 
     res.status(200).send({ success: true, message: "Successfully fetched all events.", data: events });
     console.log("All events fetched successfully")
@@ -346,21 +370,29 @@ export const getEventsByType = async(req, res) => {
   try{
     const events = await Event.find({ type })
     .populate({
-      path: 'host',
-      select: 'user expertise',
-      populate: {
-        path: 'user',
-        select: 'name email photo'
-      }      
-    })
-    .populate({
-      path: 'topic',
-      select: 'name photo'
-    })
-    .populate({
-      path: 'attendees.user',
-      select: 'name email photo'
-    });
+        path: 'host',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo age'
+        }      
+      })
+      .populate({
+        path: 'expert',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }
+      })
+      .populate({
+        path: 'topic',
+        select: 'name photo'
+      })
+      .populate({
+        path: 'attendees.user',
+        select: 'name email photo age'
+      });
 
     if (!events) {
       return res.status(404).send({ success: false, message: "No Events found" });
@@ -384,21 +416,29 @@ export const getEventsByTopic = async(req, res) => {
   try{
     const events = await Event.find()
     .populate({
-      path: 'host',
-      select: 'user expertise',
-      populate: {
-        path: 'user',
-        select: 'name email photo'
-      }      
-    })
-    .populate({
-      path: 'topic',
-      select: 'name photo'
-    })
-    .populate({
-      path: 'attendees.user',
-      select: 'name email photo'
-    });
+        path: 'host',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo age'
+        }      
+      })
+      .populate({
+        path: 'expert',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }
+      })
+      .populate({
+        path: 'topic',
+        select: 'name photo'
+      })
+      .populate({
+        path: 'attendees.user',
+        select: 'name email photo age'
+      });
 
     if (!events) {
       return res.status(404).send({ success: false, message: "No Events found" });
@@ -421,21 +461,29 @@ export const getEventsByLanguage = async(req, res) => {
   try{
     const events = await Event.find({ language })
     .populate({
-      path: 'host',
-      select: 'user expertise',
-      populate: {
-        path: 'user',
-        select: 'name email photo'
-      }      
-    })
-    .populate({
-      path: 'topic',
-      select: 'name photo'
-    })
-    .populate({
-      path: 'attendees.user',
-      select: 'name email photo'
-    });
+        path: 'host',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo age'
+        }      
+      })
+      .populate({
+        path: 'expert',
+        select: 'user expertise',
+        populate: {
+          path: 'user',
+          select: 'name email photo'
+        }
+      })
+      .populate({
+        path: 'topic',
+        select: 'name photo'
+      })
+      .populate({
+        path: 'attendees.user',
+        select: 'name email photo age'
+      });
     
     if(!events){
       return res.status(404).send({ success: false, message: "No Events found" });

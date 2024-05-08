@@ -4,6 +4,8 @@ dotenv.config();
 
 let transporter = nodemailer.createTransport({ 
     host:process.env.MAIL_HOST, 
+    secure: true,
+    port: 465,
     auth:{
         user:process.env.MAIL_USER,
         pass:process.env.MAIL_PASS,
@@ -12,7 +14,6 @@ let transporter = nodemailer.createTransport({
     
 
 export const sendEmail = async (to, subject, html) => {
-    console.log(transporter)
     console.log("Sending email to: ", to)
     try{
         let info = await transporter.sendMail({
