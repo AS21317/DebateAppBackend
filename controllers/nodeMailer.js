@@ -26,13 +26,18 @@ export const sendEmail = async (to, subject, html) => {
         //     html,
         // });
 
-        const info = resend.emails.send({
+        const { data, error } = await resend.emails.send({
             from:process.env.MAIL_FROM,
             to,
             subject,
             html,
         })
-        console.log(`Message sent: ${info.messageId}`);
+
+        if (error) {
+            return console.error({ error });
+        }
+
+        console.log(`Message sent: ${data}`);
     }catch(err){
         console.log("Error while sending email: ", err);
     }
