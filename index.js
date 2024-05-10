@@ -18,6 +18,7 @@ import expertApplicationRoute from './routes/expertApplication.js'
 import expertRoute from './routes/expert.js'
 
 // import { createEventHelper, cancelEventHelper } from "./controllers/calendarController.js"
+import { sendEmail } from './controllers/nodeMailer.js'
 
 dotenv.config()
 
@@ -110,6 +111,7 @@ if (isDevelopment) {
         console.log(`Server is running on http://${ip}:${port}/`);
     });
 } else {
+    await sendEmail('kavyagupta2719@gmail.com', 'Test Email', 'This is a test email from SpeakIndia.')
     await connectDB();
 }
 
