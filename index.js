@@ -111,7 +111,7 @@ if (isDevelopment) {
         console.log(`Server is running on http://${ip}:${port}/`);
     });
 } else {
-    await sendEmail('kavyagupta2719@gmail.com', 'Test Email', 'This is a test email from SpeakIndia.')
+    // await sendEmail('kavyagupta2719@gmail.com', 'Test Email', 'This is a test email from SpeakIndia.')
     await connectDB();
 }
 
